@@ -112,37 +112,82 @@
       border-radius: 6px;
       border: 1px solid #1f2937;
     }
+    .btn-use {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #1e3a5f;
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+    }
+    .history-block {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #1f2937;
+    }
+    .history-title {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 13px;
+    }
+    .history-list li {
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      background: #0f172a;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      cursor: pointer;
+      color: #e5e7eb;
+    }
+    .history-list li:hover {
+      background: #1e293b;
+      border-color: #22c55e;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Калькулятор с дробями</h1>
-    <div class="subtitle">Поддерживаются операции +, −, ×, ÷, скобки и обычные дроби вида 1/2.</div>
+    <div class="subtitle">Операции +, −, ×, ÷; обычные дроби (1/2), десятичные (1.5); скобки.</div>
 
     <label for="expr">Выражение</label>
-    <input id="expr" type="text" placeholder="Например: 1/2 + 3/4 * (2 - 1/3)" />
-    <div class="hint">Используйте формат: 1/2, 3/4, 2 и операторы + - * / ( ).</div>
+    <input id="expr" type="text" placeholder="Например: 1/2 + 1.5 * 2 или (1/3 + 0.25) / 2" />
+    <div class="hint">Формат: 1/2, 1.5, 2 и операторы + - * / ( ). Результат — до 15 знаков после запятой.</div>
 
     <button id="calcBtn">Посчитать</button>
 
     <div class="results" id="results" style="display: none;">
-      <div class="results-row">
+      <div class="results-row" id="fractionRow">
         <span class="label">Результат (дробь):</span>
         <span class="value" id="fractionResult"></span>
       </div>
       <div class="results-row">
-        <span class="label">В десятичном виде:</span>
+        <span class="label">В десятичном виде (до 15 знаков):</span>
         <span class="value" id="decimalResult"></span>
+      </div>
+      <div class="results-row">
+        <button type="button" id="useResultBtn" class="btn-use">Использовать результат</button>
       </div>
     </div>
 
     <div class="error" id="error" style="display: none;"></div>
 
+    <div class="history-block" id="historyBlock" style="display: none;">
+      <div class="history-title">История (последние 10)</div>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+
     <div class="examples">
       Примеры:<br />
       <code>1/2 + 3/4</code><br />
-      <code>(1/3 + 1/6) / 2</code><br />
-      <code>5/2 / 3/4 - 1</code>
+      <code>2.5 * 4 + 0.1</code><br />
+      <code>(1/3 + 0.25) / 2</code>
     </div>
   </div>
 
@@ -171,7 +216,7 @@
     }
 
     function parseNumber(token) {
-      if (token.includes("/")) {
+      if (token.includes("/") && !token.includes(".")) {
         const [numStr, denStr] = token.split("/");
         const n = parseInt(numStr, 10);
         const d = parseInt(denStr, 10);
@@ -179,6 +224,15 @@
           throw new Error("Некорректная дробь: " + token);
         }
         return makeFraction(n, d);
+      }
+      if (token.includes(".")) {
+        const parts = token.split(".");
+        const intPart = parseInt(parts[0] || "0", 10);
+        const fracStr = parts[1] || "";
+        const den = Math.pow(10, fracStr.length);
+        const fracPart = parseInt(fracStr || "0", 10);
+        const n = intPart >= 0 ? intPart * den + fracPart : intPart * den - fracPart;
+        return makeFraction(n, den);
       }
       const n = parseInt(token, 10);
       if (Number.isNaN(n)) {
@@ -192,8 +246,23 @@
       let number = "";
       const compact = expr.replace(/\s+/g, "");
       for (const ch of compact) {
-        if (/\d/.test(ch) || (ch === "/" && number !== "")) {
+        if (/\d/.test(ch)) {
           number += ch;
+        } else if (ch === ".") {
+          if (number.includes(".") || number.includes("/")) {
+            throw new Error("Некорректное число");
+          }
+          number += ch;
+        } else if (ch === "/") {
+          if (number.includes(".")) {
+            if (number) {
+              tokens.push(number);
+              number = "";
+            }
+            tokens.push(ch);
+          } else {
+            number += ch;
+          }
         } else if ("+-*/()".includes(ch)) {
           if (number) {
             tokens.push(number);
@@ -210,12 +279,16 @@
       return tokens;
     }
 
+    function isNumberToken(token) {
+      return /^[\d.]/.test(token) || (token.length > 1 && token.includes("/"));
+    }
+
     function toRpn(tokens) {
       const precedence = { "+": 1, "-": 1, "*": 2, "/": 2 };
       const output = [];
       const ops = [];
       for (const token of tokens) {
-        if (/\d/.test(token[0])) {
+        if (isNumberToken(token)) {
           output.push(token);
         } else if (token in precedence) {
           while (
@@ -253,7 +326,7 @@
     function evalRpn(tokens) {
       const stack = [];
       for (const token of tokens) {
-        if (/\d/.test(token[0])) {
+        if (isNumberToken(token)) {
           stack.push(parseNumber(token));
         } else {
           if (stack.length < 2) {
@@ -293,29 +366,111 @@
       return fr.n + "/" + fr.d;
     }
 
+    function formatDecimal(value, maxDecimals) {
+      const n = value.n / value.d;
+      const fixed = n.toFixed(maxDecimals || 15);
+      return fixed.replace(/\.?0+$/, "") || "0";
+    }
+
     const input = document.getElementById("expr");
     const btn = document.getElementById("calcBtn");
     const resultsBlock = document.getElementById("results");
     const errorBlock = document.getElementById("error");
     const fractionResult = document.getElementById("fractionResult");
     const decimalResult = document.getElementById("decimalResult");
+    const useResultBtn = document.getElementById("useResultBtn");
+    const historyBlock = document.getElementById("historyBlock");
+    const historyList = document.getElementById("historyList");
+
+    const MAX_HISTORY = 10;
+    let calculationHistory = [];
+    let lastResultFraction = null;
+    let firstCalculationDone = false;
+
+    function renderHistory() {
+      if (calculationHistory.length === 0) {
+        historyBlock.style.display = "none";
+        return;
+      }
+      historyBlock.style.display = "block";
+      historyList.innerHTML = calculationHistory.map(function (entry, index) {
+        const dec = formatDecimal(entry.result, 15);
+        return (
+          '<li data-index="' +
+          index +
+          '" title="Нажмите, чтобы подставить результат и продолжить">' +
+          escapeHtml(entry.expr) +
+          " = " +
+          escapeHtml(dec) +
+          "</li>"
+        );
+      }).join("");
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement("div");
+      div.textContent = s;
+      return div.innerHTML;
+    }
 
     function runCalculation() {
-      const expr = input.value.trim();
+      const raw = input.value.trim();
+      // allow comma as decimal separator
+      const expr = raw.replace(/,/g, ".");
       errorBlock.style.display = "none";
       resultsBlock.style.display = "none";
       if (!expr) return;
 
       try {
         const fr = calculate(expr);
+        lastResultFraction = fr;
+        const decStr = formatDecimal(fr, 15);
         fractionResult.textContent = formatFraction(fr);
-        decimalResult.textContent = Number(fr.n / fr.d).toString();
+        decimalResult.textContent = decStr;
         resultsBlock.style.display = "block";
+
+        // show fraction only on the first successful calculation
+        const fractionRow = document.getElementById("fractionRow");
+        if (!firstCalculationDone) {
+          fractionRow.style.display = "block";
+        } else {
+          fractionRow.style.display = "none";
+        }
+
+        calculationHistory.unshift({
+          expr: raw,
+          result: fr,
+          decimalStr: decStr
+        });
+        if (calculationHistory.length > MAX_HISTORY) {
+          calculationHistory = calculationHistory.slice(0, MAX_HISTORY);
+        }
+        renderHistory();
+
+        firstCalculationDone = true;
       } catch (e) {
         errorBlock.textContent = "Ошибка: " + e.message;
         errorBlock.style.display = "block";
       }
     }
+
+    useResultBtn.addEventListener("click", function () {
+      if (lastResultFraction) {
+        input.value = formatDecimal(lastResultFraction, 15);
+        input.focus();
+      }
+    });
+
+    historyList.addEventListener("click", function (e) {
+      const li = e.target.closest("li[data-index]");
+      if (!li) return;
+      const index = parseInt(li.getAttribute("data-index"), 10);
+      const entry = calculationHistory[index];
+      if (entry) {
+        input.value = entry.decimalStr;
+        input.focus();
+      }
+    });
 
     btn.addEventListener("click", runCalculation);
     input.addEventListener("keydown", function (e) {
