@@ -116,7 +116,7 @@ def format_decimal(value: Fraction, max_decimals: int = 15) -> str:
 
 
 def main():
-    print("Калькулятор с дробями (+, -, *, /).")
+    print("Калькулина (+, -, *, /).")
     print("Используйте формат: 1/2 + 3/4 * 2")
     print("Целые числа тоже можно: 2 + 3/5")
     print("Для выхода введите: exit")
