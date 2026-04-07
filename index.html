@@ -718,7 +718,8 @@
       }
       if (token.includes(".")) {
         const negative = token.startsWith("-");
-        const normalized = negative ? token.slice(1) : token;
+        const positive = token.startsWith("+");
+        const normalized = negative || positive ? token.slice(1) : token;
         const parts = normalized.split(".");
         if (parts.length !== 2) {
           throw new Error("Некорректное число: " + token);
@@ -738,11 +739,17 @@
       return makeFraction(n, 1n);
     }
 
+    function isUnaryContext(tokens) {
+      const prev = tokens[tokens.length - 1];
+      return !prev || ["+", "-", "*", "/", "(", "u-", "u+"].includes(prev);
+    }
+
     function tokenize(expr) {
       const tokens = [];
       let number = "";
       const compact = expr.replace(/\s+/g, "");
-      for (const ch of compact) {
+      for (let i = 0; i < compact.length; i += 1) {
+        const ch = compact[i];
         if (/\d/.test(ch)) {
           number += ch;
         } else if (ch === ".") {
@@ -751,16 +758,38 @@
           }
           number += ch;
         } else if (ch === "/") {
-          if (number.includes(".")) {
+          const nextChar = compact[i + 1] || "";
+          const canExtendFraction =
+            number &&
+            /[\d.]$/.test(number) &&
+            !number.includes(".") &&
+            !number.includes("/") &&
+            /\d/.test(nextChar);
+          if (canExtendFraction) {
+            number += ch;
+          } else {
             if (number) {
               tokens.push(number);
               number = "";
             }
             tokens.push(ch);
-          } else {
-            number += ch;
           }
-        } else if ("+-*/()".includes(ch)) {
+        } else if ("+-".includes(ch)) {
+          const nextChar = compact[i + 1] || "";
+          if (!number && isUnaryContext(tokens)) {
+            if (/\d|\./.test(nextChar)) {
+              number = ch;
+            } else {
+              tokens.push(ch === "-" ? "u-" : "u+");
+            }
+          } else {
+            if (number) {
+              tokens.push(number);
+              number = "";
+            }
+            tokens.push(ch);
+          }
+        } else if ("*()".includes(ch)) {
           if (number) {
             tokens.push(number);
             number = "";
@@ -777,11 +806,12 @@
     }
 
     function isNumberToken(token) {
-      return /^[\d.]/.test(token) || (token.length > 1 && token.includes("/"));
+      return /^[+-]?(?:\d+(?:\/\d+)?|\d*\.\d+|\d+\.)$/.test(token);
     }
 
     function toRpn(tokens) {
-      const precedence = { "+": 1, "-": 1, "*": 2, "/": 2 };
+      const precedence = { "+": 1, "-": 1, "*": 2, "/": 2, "u-": 3, "u+": 3 };
+      const rightAssociative = { "u-": true, "u+": true };
       const output = [];
       const ops = [];
       for (const token of tokens) {
@@ -791,7 +821,13 @@
           while (
             ops.length &&
             ops[ops.length - 1] in precedence &&
-            precedence[ops[ops.length - 1]] >= precedence[token]
+            (
+              precedence[ops[ops.length - 1]] > precedence[token] ||
+              (
+                precedence[ops[ops.length - 1]] === precedence[token] &&
+                !rightAssociative[token]
+              )
+            )
           ) {
             output.push(ops.pop());
           }
@@ -826,6 +862,14 @@
         if (isNumberToken(token)) {
           stack.push(parseNumber(token));
         } else {
+          if (token === "u-" || token === "u+") {
+            if (stack.length < 1) {
+              throw new Error("Неверное выражение");
+            }
+            const value = stack.pop();
+            stack.push(token === "u-" ? makeFraction(-value.n, value.d) : value);
+            continue;
+          }
           if (stack.length < 2) {
             throw new Error("Неверное выражение");
           }
@@ -1006,9 +1050,6 @@
       if (message.startsWith("Некорректная дробь: ")) {
         const fragment = getMessageSuffix(message, "Некорректная дробь: ");
         if (!fragment) {
-          if (/\)\s*\/\s*\d/.test(rawExpr)) {
-            return 'Проблема рядом со знаком "/". Сейчас калькулятор может ошибаться на делении сразу после скобки, например в выражениях вида "(...) / 2".';
-          }
           return 'Проверьте запись дроби или деления рядом со знаком "/". Для дроби используйте формат 1/2.';
         }
         return 'Проверьте дробь рядом с "' + fragment + '". Используйте формат числитель/знаменатель, например 1/2.';
