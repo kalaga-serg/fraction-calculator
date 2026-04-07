@@ -96,32 +96,60 @@
       margin-bottom: 20px;
       max-width: 38ch;
     }
+    .input-zone {
+      position: relative;
+      margin-bottom: 18px;
+      padding: 16px 16px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(125, 211, 252, 0.12);
+      background:
+        linear-gradient(180deg, rgba(8, 16, 32, 0.92), rgba(4, 10, 24, 0.82)),
+        rgba(2, 6, 23, 0.7);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
     label {
       display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-      color: #cfe1f6;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: #dff4ff;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
     }
     input[type="text"] {
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(125, 211, 252, 0.16);
-      background: rgba(2, 6, 23, 0.75);
+      min-height: 72px;
+      padding: 18px 22px;
+      border-radius: 20px;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      background:
+        linear-gradient(180deg, rgba(3, 8, 20, 0.94), rgba(6, 13, 28, 0.88)),
+        rgba(2, 6, 23, 0.78);
       color: var(--text-main);
-      font-size: 14px;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      font-weight: 500;
       outline: none;
       box-sizing: border-box;
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
+    }
+    input[type="text"]::placeholder {
+      color: rgba(159, 179, 200, 0.72);
     }
     input[type="text"]:focus {
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.45), 0 0 0 6px rgba(96, 165, 250, 0.08);
+      box-shadow:
+        0 0 0 1px rgba(103, 232, 249, 0.45),
+        0 0 0 7px rgba(96, 165, 250, 0.09),
+        0 18px 36px rgba(8, 16, 32, 0.34);
     }
     .hint {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 4px;
-      margin-bottom: 14px;
+      margin-top: 10px;
+      margin-bottom: 0;
+      line-height: 1.45;
     }
     button {
       padding: 9px 16px;
@@ -318,6 +346,33 @@
       border: 1px solid rgba(96, 165, 250, 0.72);
       box-shadow: none;
     }
+    .btn-copy {
+      margin-top: 0;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: rgba(8, 16, 32, 0.78);
+      color: #dff4ff;
+      border: 1px solid rgba(103, 232, 249, 0.34);
+      box-shadow: none;
+    }
+    .primary-cta {
+      min-height: 60px;
+      padding: 14px 24px;
+      margin-top: 2px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      border-radius: 18px;
+      box-shadow:
+        0 18px 34px rgba(52, 211, 153, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+    .primary-cta:hover {
+      transform: translateY(-1px);
+    }
+    .primary-cta:active {
+      transform: translateY(1px);
+    }
     .history-block {
       margin-top: 16px;
       padding-top: 12px;
@@ -386,6 +441,21 @@
       h1 {
         font-size: 26px;
       }
+      .input-zone {
+        padding: 14px 14px 12px;
+      }
+      input[type="text"] {
+        min-height: 64px;
+        padding: 16px 18px;
+        font-size: 18px;
+      }
+      .primary-cta {
+        width: 100%;
+        justify-content: center;
+        min-height: 58px;
+        padding: 14px 18px;
+        font-size: 18px;
+      }
       .result-card {
         padding: 16px 14px 14px;
       }
@@ -412,11 +482,13 @@
     <h1>Кальку<span class="title-accent">лина</span></h1>
     <div class="subtitle">Дроби, десятичные числа, скобки и базовые операции.</div>
 
-    <label for="expr">Выражение</label>
-    <input id="expr" type="text" placeholder="Например: 1/2 + 1.5 * 2 или (1/3 + 0.25) / 2" />
-    <div class="hint">Например: 1/2 + 0.25 * 3</div>
+    <div class="input-zone">
+      <label for="expr">Выражение</label>
+      <input id="expr" type="text" placeholder="Например: 1/2 + 1.5 * 2 или (1/3 + 0.25) / 2" />
+      <div class="hint">Начните с простого примера: 1/2 + 0.25 * 3</div>
+    </div>
 
-    <button id="calcBtn">Посчитать</button>
+    <button id="calcBtn" class="primary-cta">Посчитать</button>
 
     <div class="empty-state" id="emptyState">
       <div class="empty-card">
@@ -444,6 +516,14 @@
             title="Подставить текущий результат в поле ввода"
           >
             Подставить в выражение
+          </button>
+          <button
+            type="button"
+            id="copyResultBtn"
+            class="btn-copy"
+            title="Скопировать текущий результат"
+          >
+            Копировать ответ
           </button>
         </div>
       </div>
@@ -694,6 +774,7 @@
     const fractionResult = document.getElementById("fractionResult");
     const decimalResult = document.getElementById("decimalResult");
     const useResultBtn = document.getElementById("useResultBtn");
+    const copyResultBtn = document.getElementById("copyResultBtn");
     const historyBlock = document.getElementById("historyBlock");
     const historyTitle = document.getElementById("historyTitle");
     const historyList = document.getElementById("historyList");
@@ -742,6 +823,78 @@
       return div.innerHTML;
     }
 
+    function getMessageSuffix(message, prefix) {
+      return message.slice(prefix.length).trim();
+    }
+
+    function formatUserError(rawExpr, message) {
+      if (message === "Деление на ноль") {
+        return "Нельзя делить на ноль. Проверьте знаменатель или правую часть деления.";
+      }
+
+      if (message === "Несогласованные скобки") {
+        return "Проверьте скобки: похоже, одна из них не закрыта или закрыта лишний раз.";
+      }
+
+      if (message === "Неверное выражение") {
+        return "Выражение выглядит незавершённым. Проверьте порядок чисел, операторов и скобок.";
+      }
+
+      if (message === "Некорректное число") {
+        return "Проверьте формат числа. Используйте запись вроде 12, 1/2 или 0.25.";
+      }
+
+      if (message.startsWith("Недопустимый символ: ")) {
+        const symbol = getMessageSuffix(message, "Недопустимый символ: ");
+        return 'Недопустимый символ "' + symbol + '". Используйте только цифры, скобки и операторы + - * /.';
+      }
+
+      if (message.startsWith("Некорректное число: ")) {
+        const fragment = getMessageSuffix(message, "Некорректное число: ");
+        return 'Проверьте число рядом с "' + fragment + '". Поддерживаются целые, дроби и десятичные числа.';
+      }
+
+      if (message.startsWith("Некорректная дробь: ")) {
+        const fragment = getMessageSuffix(message, "Некорректная дробь: ");
+        if (!fragment) {
+          if (/\)\s*\/\s*\d/.test(rawExpr)) {
+            return 'Проблема рядом со знаком "/". Сейчас калькулятор может ошибаться на делении сразу после скобки, например в выражениях вида "(...) / 2".';
+          }
+          return 'Проверьте запись дроби или деления рядом со знаком "/". Для дроби используйте формат 1/2.';
+        }
+        return 'Проверьте дробь рядом с "' + fragment + '". Используйте формат числитель/знаменатель, например 1/2.';
+      }
+
+      if (message.startsWith("Неизвестный токен: ")) {
+        const token = getMessageSuffix(message, "Неизвестный токен: ");
+        return 'Не удалось разобрать часть выражения рядом с "' + token + '". Проверьте соседние символы.';
+      }
+
+      if (message.startsWith("Неизвестный оператор: ")) {
+        const token = getMessageSuffix(message, "Неизвестный оператор: ");
+        return 'Оператор "' + token + '" не поддерживается. Используйте только +, -, * и /.';
+      }
+
+      return "Проверьте выражение и попробуйте ещё раз. Детали: " + message;
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const helper = document.createElement("textarea");
+      helper.value = text;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "absolute";
+      helper.style.left = "-9999px";
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand("copy");
+      document.body.removeChild(helper);
+    }
+
     function runCalculation() {
       const raw = input.value.trim();
       // allow comma as decimal separator
@@ -772,7 +925,7 @@
         renderHistory();
 
       } catch (e) {
-        errorBlock.textContent = "Ошибка: " + e.message;
+        errorBlock.textContent = "Ошибка: " + formatUserError(raw, e.message);
         errorBlock.style.display = "block";
       }
     }
@@ -782,6 +935,23 @@
         input.value = formatDecimal(lastResultFraction, 15);
         input.focus();
       }
+    });
+
+    copyResultBtn.addEventListener("click", async function () {
+      if (!lastResultFraction) return;
+      const textToCopy = formatDecimal(lastResultFraction, 15);
+      const initialLabel = copyResultBtn.textContent;
+
+      try {
+        await copyTextToClipboard(textToCopy);
+        copyResultBtn.textContent = "Скопировано";
+      } catch (e) {
+        copyResultBtn.textContent = "Не удалось";
+      }
+
+      window.setTimeout(function () {
+        copyResultBtn.textContent = initialLabel;
+      }, 1400);
     });
 
     historyList.addEventListener("click", function (e) {
