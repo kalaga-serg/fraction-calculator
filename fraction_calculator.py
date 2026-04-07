@@ -92,6 +92,29 @@ def calculate_expression(expr: str) -> Fraction:
     return eval_rpn(rpn)
 
 
+def format_decimal(value: Fraction, max_decimals: int = 15) -> str:
+    sign = "-" if value < 0 else ""
+    numerator = abs(value.numerator)
+    denominator = value.denominator
+    integer_part = numerator // denominator
+    remainder = numerator % denominator
+
+    if remainder == 0:
+        return f"{sign}{integer_part}"
+
+    fractional_digits = []
+
+    for _ in range(max_decimals):
+        if remainder == 0:
+            break
+        remainder *= 10
+        digit = remainder // denominator
+        fractional_digits.append(str(digit))
+        remainder %= denominator
+
+    return f"{sign}{integer_part}.{''.join(fractional_digits)}"
+
+
 def main():
     print("Калькулятор с дробями (+, -, *, /).")
     print("Используйте формат: 1/2 + 3/4 * 2")
@@ -108,7 +131,7 @@ def main():
         try:
             result = calculate_expression(expr)
             print(f"Результат: {result} (как дробь)")
-            print(f"В десятичном виде: {float(result)}")
+            print(f"В десятичном виде: {format_decimal(result)}")
         except Exception as e:
             print(f"Ошибка: {e}")
 

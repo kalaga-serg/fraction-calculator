@@ -158,7 +158,7 @@
 
     <label for="expr">Выражение</label>
     <input id="expr" type="text" placeholder="Например: 1/2 + 1.5 * 2 или (1/3 + 0.25) / 2" />
-    <div class="hint">Формат: 1/2, 1.5, 2 и операторы + - * / ( ). Результат — до 15 знаков после запятой.</div>
+    <div class="hint">Формат: 1/2, 1.5, 2 и операторы + - * / ( ). Результат — до 15 знаков после запятой, без лишних нулей.</div>
 
     <button id="calcBtn">Посчитать</button>
 
@@ -168,7 +168,7 @@
         <span class="value" id="fractionResult"></span>
       </div>
       <div class="results-row">
-        <span class="label">В десятичном виде (до 15 знаков):</span>
+        <span class="label">В десятичном виде (до 15 знаков, без лишних нулей):</span>
         <span class="value" id="decimalResult"></span>
       </div>
       <div class="results-row">
@@ -367,9 +367,27 @@
     }
 
     function formatDecimal(value, maxDecimals) {
-      const n = value.n / value.d;
-      const fixed = n.toFixed(maxDecimals || 15);
-      return fixed.replace(/\.?0+$/, "") || "0";
+      const limit = maxDecimals || 15;
+      const sign = value.n < 0 ? "-" : "";
+      const numerator = Math.abs(value.n);
+      const denominator = value.d;
+      const integerPart = Math.floor(numerator / denominator);
+      let remainder = numerator % denominator;
+
+      if (remainder === 0) {
+        return sign + String(integerPart);
+      }
+
+      let fractionalDigits = "";
+
+      for (let i = 0; i < limit && remainder !== 0; i += 1) {
+        remainder *= 10;
+        const digit = Math.floor(remainder / denominator);
+        fractionalDigits += String(digit);
+        remainder %= denominator;
+      }
+
+      return sign + integerPart + "." + fractionalDigits;
     }
 
     const input = document.getElementById("expr");
