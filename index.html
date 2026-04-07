@@ -192,22 +192,26 @@
   </div>
 
   <script>
+    function absBigInt(value) {
+      return value < 0n ? -value : value;
+    }
+
     function gcd(a, b) {
-      a = Math.abs(a);
-      b = Math.abs(b);
-      while (b !== 0) {
+      a = absBigInt(a);
+      b = absBigInt(b);
+      while (b !== 0n) {
         const t = b;
         b = a % b;
         a = t;
       }
-      return a || 1;
+      return a || 1n;
     }
 
     function makeFraction(n, d) {
-      if (d === 0) {
+      if (d === 0n) {
         throw new Error("Деление на ноль");
       }
-      if (d < 0) {
+      if (d < 0n) {
         n = -n;
         d = -d;
       }
@@ -215,30 +219,44 @@
       return { n: n / g, d: d / g };
     }
 
+    function parseBigIntValue(raw, errorPrefix) {
+      if (!/^[+-]?\d+$/.test(raw)) {
+        throw new Error(errorPrefix + raw);
+      }
+      return BigInt(raw);
+    }
+
     function parseNumber(token) {
       if (token.includes("/") && !token.includes(".")) {
-        const [numStr, denStr] = token.split("/");
-        const n = parseInt(numStr, 10);
-        const d = parseInt(denStr, 10);
-        if (Number.isNaN(n) || Number.isNaN(d)) {
+        const parts = token.split("/");
+        if (parts.length !== 2) {
           throw new Error("Некорректная дробь: " + token);
         }
+        const [numStr, denStr] = parts;
+        const n = parseBigIntValue(numStr, "Некорректная дробь: ");
+        const d = parseBigIntValue(denStr, "Некорректная дробь: ");
         return makeFraction(n, d);
       }
       if (token.includes(".")) {
-        const parts = token.split(".");
-        const intPart = parseInt(parts[0] || "0", 10);
+        const negative = token.startsWith("-");
+        const normalized = negative ? token.slice(1) : token;
+        const parts = normalized.split(".");
+        if (parts.length !== 2) {
+          throw new Error("Некорректное число: " + token);
+        }
+        const intPart = parseBigIntValue(parts[0] || "0", "Некорректное число: ");
         const fracStr = parts[1] || "";
-        const den = Math.pow(10, fracStr.length);
-        const fracPart = parseInt(fracStr || "0", 10);
-        const n = intPart >= 0 ? intPart * den + fracPart : intPart * den - fracPart;
+        if (!/^\d*$/.test(fracStr)) {
+          throw new Error("Некорректное число: " + token);
+        }
+        const den = 10n ** BigInt(fracStr.length);
+        const fracPart = parseBigIntValue(fracStr || "0", "Некорректное число: ");
+        const unsignedNumerator = intPart * den + fracPart;
+        const n = negative ? -unsignedNumerator : unsignedNumerator;
         return makeFraction(n, den);
       }
-      const n = parseInt(token, 10);
-      if (Number.isNaN(n)) {
-        throw new Error("Некорректное число: " + token);
-      }
-      return makeFraction(n, 1);
+      const n = parseBigIntValue(token, "Некорректное число: ");
+      return makeFraction(n, 1n);
     }
 
     function tokenize(expr) {
@@ -362,32 +380,32 @@
     }
 
     function formatFraction(fr) {
-      if (fr.d === 1) return String(fr.n);
-      return fr.n + "/" + fr.d;
+      if (fr.d === 1n) return fr.n.toString();
+      return fr.n.toString() + "/" + fr.d.toString();
     }
 
     function formatDecimal(value, maxDecimals) {
       const limit = maxDecimals || 15;
-      const sign = value.n < 0 ? "-" : "";
-      const numerator = Math.abs(value.n);
+      const sign = value.n < 0n ? "-" : "";
+      const numerator = absBigInt(value.n);
       const denominator = value.d;
-      const integerPart = Math.floor(numerator / denominator);
+      const integerPart = numerator / denominator;
       let remainder = numerator % denominator;
 
-      if (remainder === 0) {
-        return sign + String(integerPart);
+      if (remainder === 0n) {
+        return sign + integerPart.toString();
       }
 
       let fractionalDigits = "";
 
-      for (let i = 0; i < limit && remainder !== 0; i += 1) {
-        remainder *= 10;
-        const digit = Math.floor(remainder / denominator);
-        fractionalDigits += String(digit);
+      for (let i = 0; i < limit && remainder !== 0n; i += 1) {
+        remainder *= 10n;
+        const digit = remainder / denominator;
+        fractionalDigits += digit.toString();
         remainder %= denominator;
       }
 
-      return sign + integerPart + "." + fractionalDigits;
+      return sign + integerPart.toString() + "." + fractionalDigits;
     }
 
     const input = document.getElementById("expr");
