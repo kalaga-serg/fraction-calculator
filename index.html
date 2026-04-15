@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Калькулина</title>
+  <title>Галькулятор</title>
   <style>
     :root {
       --bg-top: #07111f;
@@ -37,7 +37,7 @@
       padding: 24px 28px;
       box-shadow: 0 28px 80px rgba(2, 6, 23, 0.62);
       width: 100%;
-      max-width: 520px;
+      max-width: 760px;
       border: 1px solid var(--card-border);
       backdrop-filter: blur(16px);
       overflow: hidden;
@@ -50,30 +50,6 @@
         linear-gradient(135deg, rgba(103, 232, 249, 0.1), transparent 36%),
         radial-gradient(circle at top right, rgba(52, 211, 153, 0.12), transparent 28%);
       pointer-events: none;
-    }
-    .brand-mark {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 11px;
-      margin-bottom: 12px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.72);
-      border: 1px solid rgba(103, 232, 249, 0.2);
-      color: var(--accent-cyan);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .brand-mark::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-      box-shadow: 0 0 12px rgba(96, 165, 250, 0.55);
     }
     h1 {
       position: relative;
@@ -95,7 +71,9 @@
       line-height: 1.5;
       color: #b7c9db;
       margin-bottom: 20px;
-      max-width: 38ch;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .section-panel {
       position: relative;
@@ -158,9 +136,10 @@
       text-transform: uppercase;
       font-weight: 700;
     }
-    input[type="text"] {
+    textarea {
       width: 100%;
-      min-height: 72px;
+      min-height: 116px;
+      max-height: 260px;
       padding: 18px 22px;
       border-radius: 20px;
       border: 1px solid rgba(125, 211, 252, 0.22);
@@ -169,17 +148,22 @@
         rgba(2, 6, 23, 0.78);
       color: var(--text-main);
       font-size: 20px;
-      line-height: 1.3;
-      letter-spacing: -0.02em;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
       font-weight: 500;
+      font-family: Consolas, "Courier New", monospace;
       outline: none;
       box-sizing: border-box;
+      resize: none;
+      overflow-y: hidden;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
       box-shadow: 0 14px 30px rgba(2, 6, 23, 0.28);
     }
-    input[type="text"]::placeholder {
+    textarea::placeholder {
       color: rgba(159, 179, 200, 0.72);
     }
-    input[type="text"]:focus {
+    textarea:focus {
       border-color: var(--accent-cyan);
       box-shadow:
         0 0 0 1px rgba(103, 232, 249, 0.45),
@@ -225,6 +209,7 @@
       border-top: 1px solid rgba(148, 163, 184, 0.12);
     }
     .feedback-zone {
+      margin-top: 18px;
       min-height: 148px;
     }
     .surface-reveal {
@@ -259,10 +244,6 @@
       font-size: 13px;
       line-height: 1.5;
       color: #94a3b8;
-    }
-    .empty-copy strong {
-      color: #dbeafe;
-      font-weight: 600;
     }
     .result-card {
       position: relative;
@@ -322,36 +303,11 @@
       word-break: break-word;
       text-wrap: balance;
     }
-    .result-meta {
-      display: grid;
-      grid-template-columns: 108px 1fr;
-      gap: 8px 12px;
-      align-items: start;
-      padding: 12px 0 0;
-      border-top: 1px solid rgba(148, 163, 184, 0.14);
-    }
-    .result-meta .label {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.4;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #89a3bd;
-    }
-    .result-meta .value {
-      min-width: 0;
-      font-size: 15px;
-      line-height: 1.45;
-      color: #dbeafe;
-      word-break: break-word;
-    }
     .result-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(148, 163, 184, 0.14);
+      margin-top: 10px;
     }
     .error {
       margin-top: 12px;
@@ -362,44 +318,6 @@
       font-size: 14px;
       line-height: 1.5;
       color: #ffd1d8;
-    }
-    .examples {
-      margin-top: 0;
-      font-size: 13px;
-      color: #b1c5da;
-    }
-    .examples-title {
-      margin-bottom: 8px;
-      color: #e4eefb;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .examples-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .example-chip {
-      padding: 7px 11px;
-      border-radius: 999px;
-      border: 1px solid rgba(125, 211, 252, 0.18);
-      background: rgba(15, 23, 42, 0.76);
-      color: #dff4ff;
-      font-size: 12px;
-      line-height: 1.2;
-      cursor: pointer;
-      transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
-    }
-    .example-chip:hover {
-      background: rgba(20, 34, 55, 0.95);
-      border-color: rgba(103, 232, 249, 0.62);
-      transform: translateY(-1px);
-    }
-    .example-chip:focus-visible {
-      outline: 2px solid rgba(59, 130, 246, 0.8);
-      outline-offset: 2px;
     }
     .btn-use {
       margin-top: 0;
@@ -441,10 +359,6 @@
       margin-top: 0;
       padding-top: 0;
       border-top: none;
-    }
-    .support-grid {
-      display: grid;
-      gap: 16px;
     }
     .support-panel {
       padding: 14px 14px 12px;
@@ -513,9 +427,6 @@
       .card {
         padding: 20px 18px;
       }
-      .brand-mark {
-        margin-bottom: 10px;
-      }
       h1 {
         font-size: 26px;
       }
@@ -531,8 +442,8 @@
       .input-zone {
         padding: 14px 14px 12px;
       }
-      input[type="text"] {
-        min-height: 64px;
+      textarea {
+        min-height: 104px;
         padding: 16px 18px;
         font-size: 18px;
       }
@@ -549,10 +460,6 @@
       .result-number {
         font-size: 24px;
       }
-      .result-meta {
-        grid-template-columns: 1fr;
-        gap: 4px;
-      }
       .result-actions {
         flex-direction: column;
       }
@@ -565,9 +472,8 @@
 </head>
 <body>
   <div class="card">
-    <div class="brand-mark">Галина + калькулятор</div>
-    <h1>Кальку<span class="title-accent">лина</span></h1>
-    <div class="subtitle">Дроби, десятичные числа, скобки и базовые операции.</div>
+    <h1>Галь<span class="title-accent">кулятор</span></h1>
+    <div class="subtitle">Дроби, десятичные, скобки и операции.</div>
 
     <section class="section-panel">
       <div class="section-header">
@@ -579,8 +485,8 @@
       </div>
       <div class="input-zone">
         <label for="expr">Выражение</label>
-        <input id="expr" type="text" placeholder="Например: 1/2 + 1.5 * 2 или (1/3 + 0.25) / 2" />
-        <div class="hint">Начните с простого примера: 1/2 + 0.25 * 3</div>
+        <textarea id="expr" rows="3" spellcheck="false" placeholder="Например: 12345678901234567890 + 98765432109876543210&#10;(1/3 + 0.25) / 2"></textarea>
+        <div class="hint">Для длинных выражений поле растёт по высоте. Быстрый расчёт: Ctrl+Enter или Cmd+Enter.</div>
       </div>
     </section>
 
@@ -598,7 +504,7 @@
         <div class="empty-state" id="emptyState">
           <div class="empty-card">
             <p class="empty-title">Начните с выражения</p>
-            <p class="empty-copy">Введите своё выражение или нажмите на один из <strong>быстрых примеров</strong> ниже.</p>
+            <p class="empty-copy">Введите выражение целиком, даже если в нём много длинных чисел и несколько строк.</p>
           </div>
         </div>
 
@@ -608,10 +514,6 @@
             <div class="result-primary">
               <span class="result-caption">Основной результат</span>
               <span class="result-number" id="decimalResult"></span>
-            </div>
-            <div class="result-meta" id="fractionRow">
-              <span class="label">Дробь</span>
-              <span class="value" id="fractionResult"></span>
             </div>
             <div class="result-actions">
               <button
@@ -642,29 +544,18 @@
       <div class="section-header">
         <div class="section-title-group">
           <span class="section-kicker">Шаг 3</span>
-          <span class="section-heading">Продолжите работу</span>
+          <span class="section-heading">История вычислений</span>
         </div>
-        <p class="section-copy">История и быстрые сценарии под рукой</p>
+        <p class="section-copy">Последние результаты появляются здесь после расчёта</p>
       </div>
-      <div class="support-grid">
-        <div class="support-panel" id="historyPanel" style="display: none;">
-          <div class="history-block" id="historyBlock" style="display: none;">
-            <div class="history-header">
-              <div class="history-title" id="historyTitle">Последние вычисления</div>
-              <button type="button" class="history-toggle" id="historyToggleBtn" aria-expanded="false">Показать</button>
-            </div>
-            <ul class="history-list" id="historyList"></ul>
+      <div class="support-panel" id="historyPanel">
+        <div class="history-block" id="historyBlock">
+          <div class="history-header">
+            <div class="history-title" id="historyTitle">Последние вычисления</div>
+            <button type="button" class="history-toggle" id="historyToggleBtn" aria-expanded="false">Показать</button>
           </div>
-        </div>
-        <div class="support-panel">
-          <div class="examples" id="examplesBlock">
-            <div class="examples-title">Быстрые примеры</div>
-            <div class="examples-list">
-              <button type="button" class="example-chip" data-example="1/2 + 3/4">1/2 + 3/4</button>
-              <button type="button" class="example-chip" data-example="2.5 * 4 + 0.1">2.5 * 4 + 0.1</button>
-              <button type="button" class="example-chip" data-example="(1/3 + 0.25) / 2">(1/3 + 0.25) / 2</button>
-            </div>
-          </div>
+          <p class="empty-copy" id="historyEmptyCopy">После первого расчёта здесь появится история последних выражений.</p>
+          <ul class="history-list" id="historyList"></ul>
         </div>
       </div>
     </section>
@@ -936,16 +827,15 @@
     const emptyState = document.getElementById("emptyState");
     const resultsBlock = document.getElementById("results");
     const errorBlock = document.getElementById("error");
-    const fractionResult = document.getElementById("fractionResult");
     const decimalResult = document.getElementById("decimalResult");
     const useResultBtn = document.getElementById("useResultBtn");
     const copyResultBtn = document.getElementById("copyResultBtn");
     const historyPanel = document.getElementById("historyPanel");
     const historyBlock = document.getElementById("historyBlock");
     const historyTitle = document.getElementById("historyTitle");
+    const historyEmptyCopy = document.getElementById("historyEmptyCopy");
     const historyList = document.getElementById("historyList");
     const historyToggleBtn = document.getElementById("historyToggleBtn");
-    const examplesBlock = document.getElementById("examplesBlock");
 
     const MAX_HISTORY = 10;
     let calculationHistory = [];
@@ -962,13 +852,16 @@
 
     function renderHistory() {
       if (calculationHistory.length === 0) {
-        historyPanel.style.display = "none";
-        historyBlock.style.display = "none";
+        historyPanel.style.display = "block";
+        historyBlock.style.display = "block";
+        historyEmptyCopy.style.display = "block";
+        historyList.innerHTML = "";
         setHistoryExpanded(false);
         return;
       }
       historyPanel.style.display = "block";
       historyBlock.style.display = "block";
+      historyEmptyCopy.style.display = "none";
       historyTitle.textContent = "Последние вычисления (" + calculationHistory.length + ")";
       setHistoryExpanded(isHistoryExpanded);
       historyList.innerHTML = calculationHistory.map(function (entry, index) {
@@ -1002,6 +895,13 @@
         const position = input.value.length;
         input.setSelectionRange(position, position);
       }
+    }
+
+    function syncInputHeight() {
+      input.style.height = "auto";
+      const nextHeight = Math.min(Math.max(input.scrollHeight, 116), 260);
+      input.style.height = nextHeight + "px";
+      input.style.overflowY = input.scrollHeight > 260 ? "auto" : "hidden";
     }
 
     function hideFeedbackBlock(block) {
@@ -1101,7 +1001,6 @@
         const fr = calculate(expr);
         lastResultFraction = fr;
         const decStr = formatDecimal(fr, 15);
-        fractionResult.textContent = formatFraction(fr);
         decimalResult.textContent = decStr;
         hasSuccessfulCalculation = true;
         hideFeedbackBlock(emptyState);
@@ -1126,6 +1025,7 @@
     useResultBtn.addEventListener("click", function () {
       if (lastResultFraction) {
         input.value = formatDecimal(lastResultFraction, 15);
+        syncInputHeight();
         focusExpressionInput(true);
       }
     });
@@ -1154,6 +1054,7 @@
       const entry = calculationHistory[index];
       if (entry) {
         input.value = entry.decimalStr;
+        syncInputHeight();
         focusExpressionInput(true);
       }
     });
@@ -1162,20 +1063,17 @@
       setHistoryExpanded(!isHistoryExpanded);
     });
 
-    examplesBlock.addEventListener("click", function (e) {
-      const chip = e.target.closest("button[data-example]");
-      if (!chip) return;
-      input.value = chip.getAttribute("data-example") || "";
-      focusExpressionInput(true);
-    });
-
     btn.addEventListener("click", runCalculation);
+    input.addEventListener("input", syncInputHeight);
     input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         runCalculation();
       }
     });
     window.requestAnimationFrame(function () {
+      syncInputHeight();
+      renderHistory();
       focusExpressionInput(true);
     });
   </script>
